@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -14,17 +13,21 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
     setLoading(true);
+
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email }),
       });
+
       const data = await res.json();
+
       if (!res.ok) {
         setError(data.error ?? "Something went wrong.");
         return;
       }
+
       router.push("/");
       router.refresh();
     } catch {
@@ -41,6 +44,7 @@ export default function LoginPage() {
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-accent-400 to-accent-600 shadow-glow mb-4">
             <span className="text-xl font-extrabold text-white">D</span>
           </div>
+
           <h1 className="text-2xl font-bold text-white">DevClan</h1>
           <p className="text-base-500 text-sm mt-1">AI Calling Dashboard</p>
         </div>
@@ -58,17 +62,6 @@ export default function LoginPage() {
               autoFocus
             />
           </div>
-          <div>
-            <label className="label">Password</label>
-            <input
-              type="password"
-              className="input"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              required
-            />
-          </div>
 
           {error && (
             <div className="text-coral-400 text-sm bg-coral-500/10 border border-coral-500/20 rounded-lg px-3 py-2">
@@ -76,13 +69,17 @@ export default function LoginPage() {
             </div>
           )}
 
-          <button type="submit" disabled={loading} className="btn-primary w-full">
+          <button
+            type="submit"
+            disabled={loading}
+            className="btn-primary w-full"
+          >
             {loading ? "Signing in…" : "Sign in"}
           </button>
         </form>
 
         <p className="text-center text-xs text-base-500 mt-6">
-          Set your login in the ADMIN_EMAIL / ADMIN_PASSWORD_HASH environment variables.
+          Set your login in the ADMIN_EMAIL environment variable.
         </p>
       </div>
     </div>

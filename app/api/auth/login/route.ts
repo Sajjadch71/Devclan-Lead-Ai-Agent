@@ -1,45 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
-import bcrypt from "bcryptjs";
 import { createSessionToken, setSessionCookie } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
-  const { email, password } = await req.json();
+  const { email } = await req.json();
 
   const adminEmail = process.env.ADMIN_EMAIL;
-  const adminHash = process.env.ADMIN_PASSWORD_HASH;
-console.log("AUTH CHECK:", {
-  email: process.env.ADMIN_EMAIL,
-  hashExists: !!process.env.ADMIN_PASSWORD_HASH,
-});
-  if (!adminEmail || !adminHash) {
+
+  console.log("AUTH CHECK:", {
+    email: process.env.ADMIN_EMAIL,
+  });
+
+  if (!adminEmail) {
     return NextResponse.json(
-      { error: "Server is not configured yet (missing ADMIN_EMAIL / ADMIN_PASSWORD_HASH)." },
+      { error: "Server is not configured yet (missing ADMIN_EMAIL)." },
       { status: 500 }
     );
   }
 
   if (
     typeof email !== "string" ||
-    typeof password !== "string" ||
     email.trim().toLowerCase() !== adminEmail.trim().toLowerCase()
   ) {
-    return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
+    return NextResponse.json(
+      { error: "Invalid email." },
+      { status: 401 }
+    );
   }
-
-  console.log("EMAIL:", adminEmail);
-console.log("HASH LENGTH:", adminHash.length);
-console.log("HASH PREFIX:", adminHash.substring(0, 7));
-
-const passwordMatches = await bcrypt.compare(password, adminHash);
-
-console.log("PASSWORD MATCH:", passwordMatches);
-
-if (!passwordMatches) {
-  return NextResponse.json(
-    { error: "Invalid email or password." },
-    { status: 401 }
-  );
-}
 
   const token = await createSessionToken(adminEmail);
   await setSessionCookie(token);
