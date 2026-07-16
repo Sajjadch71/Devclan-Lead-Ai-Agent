@@ -7,7 +7,10 @@ export async function POST(req: NextRequest) {
 
   const adminEmail = process.env.ADMIN_EMAIL;
   const adminHash = process.env.ADMIN_PASSWORD_HASH;
-
+console.log("AUTH CHECK:", {
+  email: process.env.ADMIN_EMAIL,
+  hashExists: !!process.env.ADMIN_PASSWORD_HASH,
+});
   if (!adminEmail || !adminHash) {
     return NextResponse.json(
       { error: "Server is not configured yet (missing ADMIN_EMAIL / ADMIN_PASSWORD_HASH)." },
