@@ -26,10 +26,20 @@ console.log("AUTH CHECK:", {
     return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
   }
 
-  const passwordMatches = await bcrypt.compare(password, adminHash);
-  if (!passwordMatches) {
-    return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
-  }
+  console.log("EMAIL:", adminEmail);
+console.log("HASH LENGTH:", adminHash.length);
+console.log("HASH PREFIX:", adminHash.substring(0, 7));
+
+const passwordMatches = await bcrypt.compare(password, adminHash);
+
+console.log("PASSWORD MATCH:", passwordMatches);
+
+if (!passwordMatches) {
+  return NextResponse.json(
+    { error: "Invalid email or password." },
+    { status: 401 }
+  );
+}
 
   const token = await createSessionToken(adminEmail);
   await setSessionCookie(token);
