@@ -17,7 +17,9 @@ export default function LoginPage() {
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({ email }),
       });
 
@@ -28,9 +30,10 @@ export default function LoginPage() {
         return;
       }
 
-      router.push("/");
-      router.refresh();
-    } catch {
+      console.log("LOGIN SUCCESS");
+      window.location.href = "/";
+    } catch (err) {
+      console.error(err);
       setError("Could not reach the server. Try again.");
     } finally {
       setLoading(false);
