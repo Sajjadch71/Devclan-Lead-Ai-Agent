@@ -1,9 +1,11 @@
 import Link from "next/link";
-import { ghlRequest } from "@/lib/ghl";
+import { query } from "@/lib/db";
 import AddContactModal from "@/components/AddContactModal";
+import EditContactModal from "@/components/EditContactModal";
+import DeleteContactButton from "@/components/DeleteContactButton";
+import StageSelect from "@/components/StageSelect";
 import CallButton from "@/components/CallButton";
 import SearchBar from "@/components/SearchBar";
-import Badge from "@/components/Badge";
 import EmptyState from "@/components/EmptyState";
 
 export const dynamic = "force-dynamic";
@@ -15,37 +17,27 @@ export default async function ContactsPage({
 }) {
   const { q, stage } = await searchParams;
 
-  const data = await ghlRequest(
-    `/contacts/?locationId=${process.env.GHL_LOCATION_ID}`
-  );
-
-  let contacts = (data.contacts ?? []).map((c: any) => ({
-    id: c.id,
-    first_name: c.firstName,
-    last_name: c.lastName,
-    phone: c.phone,
-    company: c.companyName,
-    stage:
-      c.customFields?.find(
-        (f: any) => f.id === "SxiQsG0mMgxuFG1eAZ1a"
-      )?.value ?? "new",
-    opted_out: c.dnd ?? false,
-  }));
+  const params: any[] = [];
+  const where: string[] = [];
 
   if (q) {
-    contacts = contacts.filter((c: any) =>
-      `${c.first_name} ${c.last_name} ${c.phone} ${c.company}`
-        .toLowerCase()
-        .includes(q.toLowerCase())
+    params.push(`%${q}%`);
+    where.push(
+      `(first_name ilike $${params.length} or last_name ilike $${params.length} or phone ilike $${params.length} or company ilike $${params.length})`
     );
   }
 
   if (stage) {
-    contacts = contacts.filter(
-      (contact: any) =>
-        contact.stage?.toLowerCase() === stage.toLowerCase()
-    );
+    params.push(stage);
+    where.push(`stage = $${params.length}`);
   }
+
+  const contacts = await query<any>(
+    `select * from contacts
+     ${where.length ? `where ${where.join(" and ")}` : ""}
+     order by created_at desc`,
+    params
+  );
 
   const stages = ["new", "attempted", "booked", "won", "lost"];
 
@@ -142,14 +134,18 @@ export default async function ContactsPage({
                   </td>
 
                   <td className="px-5 py-3">
-                    <Badge>{c.stage}</Badge>
+                    <StageSelect id={c.id} stage={c.stage} />
                   </td>
 
                   <td className="px-5 py-3 text-right">
-                    <CallButton
-                      contactId={c.id}
-                      optedOut={c.opted_out}
-                    />
+                    <div className="flex items-center justify-end gap-2">
+                      <CallButton
+                        contactId={c.id}
+                        optedOut={c.opted_out}
+                      />
+                      <EditContactModal contact={c} />
+                      <DeleteContactButton id={c.id} />
+                    </div>
                   </td>
                 </tr>
               ))}

@@ -4,6 +4,8 @@ import Link from "next/link";
 import Badge from "@/components/Badge";
 import CallButton from "@/components/CallButton";
 import EmptyState from "@/components/EmptyState";
+import EditContactModal from "@/components/EditContactModal";
+import DeleteContactButton from "@/components/DeleteContactButton";
 
 export const dynamic = "force-dynamic";
 
@@ -56,8 +58,17 @@ export default async function ContactDetailPage({
                 </span>
               )}
             </div>
+            {contact.notes && (
+              <p className="text-sm text-base-500 mt-3 max-w-lg whitespace-pre-wrap">
+                {contact.notes}
+              </p>
+            )}
           </div>
-          <CallButton contactId={contact.id} optedOut={contact.opted_out} />
+          <div className="flex items-center gap-2">
+            <CallButton contactId={contact.id} optedOut={contact.opted_out} />
+            <EditContactModal contact={contact} />
+            <DeleteContactButton id={contact.id} redirectTo="/contacts" />
+          </div>
         </div>
       </div>
 

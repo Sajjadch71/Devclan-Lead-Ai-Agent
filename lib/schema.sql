@@ -15,9 +15,13 @@ create table if not exists contacts (
   stage text default 'new',                -- 'new' | 'attempted' | 'booked' | 'won' | 'lost'
   opted_out boolean default false,
   tags text[] default '{}',
+  notes text,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
+
+-- Added after initial release — safe to re-run against an existing database.
+alter table contacts add column if not exists notes text;
 
 create table if not exists calls (
   id uuid primary key default gen_random_uuid(),

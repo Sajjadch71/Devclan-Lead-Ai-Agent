@@ -25,7 +25,17 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const { id } = await params;
   const body = await req.json();
 
-  const allowed = ["first_name", "last_name", "email", "company", "stage", "opted_out", "tags"];
+  const allowed = [
+    "first_name",
+    "last_name",
+    "phone",
+    "email",
+    "company",
+    "stage",
+    "opted_out",
+    "tags",
+    "notes",
+  ];
   const sets: string[] = [];
   const values: any[] = [];
 
@@ -41,12 +51,21 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   }
 
   values.push(id);
-  const contact = await queryOne(
-    `update contacts set ${sets.join(", ")}, updated_at = now() where id = $${values.length} returning *`,
-    values
-  );
-
-  return NextResponse.json({ contact });
+  try {
+    const contact = await queryOne(
+      `update contacts set ${sets.join(", ")}, updated_at = now() where id = $${values.length} returning *`,
+      values
+    );
+    return NextResponse.json({ contact });
+  } catch (error: any) {
+    if (error.code === "23505") {
+      return NextResponse.json(
+        { error: "A contact with this phone number already exists." },
+        { status: 409 }
+      );
+    }
+    throw error;
+  }
 }
 
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
