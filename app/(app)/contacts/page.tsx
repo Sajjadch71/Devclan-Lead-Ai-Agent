@@ -1,5 +1,5 @@
-import { query } from "@/lib/db";
 import Link from "next/link";
+import { ghlRequest } from "@/lib/ghl";
 import AddContactModal from "@/components/AddContactModal";
 import CallButton from "@/components/CallButton";
 import SearchBar from "@/components/SearchBar";
@@ -15,24 +15,37 @@ export default async function ContactsPage({
 }) {
   const { q, stage } = await searchParams;
 
-  const conditions: string[] = [];
-  const params: any[] = [];
+  const data = await ghlRequest(
+    `/contacts/?locationId=${process.env.GHL_LOCATION_ID}`
+  );
+
+  let contacts = (data.contacts ?? []).map((c: any) => ({
+    id: c.id,
+    first_name: c.firstName,
+    last_name: c.lastName,
+    phone: c.phone,
+    company: c.companyName,
+    stage:
+      c.customFields?.find(
+        (f: any) => f.id === "SxiQsG0mMgxuFG1eAZ1a"
+      )?.value ?? "new",
+    opted_out: c.dnd ?? false,
+  }));
+
   if (q) {
-    params.push(`%${q}%`);
-    conditions.push(
-      `(first_name ilike $${params.length} or last_name ilike $${params.length} or phone ilike $${params.length} or company ilike $${params.length})`
+    contacts = contacts.filter((c: any) =>
+      `${c.first_name} ${c.last_name} ${c.phone} ${c.company}`
+        .toLowerCase()
+        .includes(q.toLowerCase())
     );
   }
-  if (stage) {
-    params.push(stage);
-    conditions.push(`stage = $${params.length}`);
-  }
-  const where = conditions.length ? `where ${conditions.join(" and ")}` : "";
 
-  const contacts = await query<any>(
-    `select * from contacts ${where} order by created_at desc limit 200`,
-    params
-  );
+  if (stage) {
+    contacts = contacts.filter(
+      (contact: any) =>
+        contact.stage?.toLowerCase() === stage.toLowerCase()
+    );
+  }
 
   const stages = ["new", "attempted", "booked", "won", "lost"];
 
@@ -41,13 +54,17 @@ export default async function ContactsPage({
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white">Contacts</h1>
-          <p className="text-base-500 text-sm mt-1">{contacts.length} shown</p>
+          <p className="text-base-500 text-sm mt-1">
+            {contacts.length} shown
+          </p>
         </div>
+
         <AddContactModal />
       </div>
 
       <div className="flex items-center gap-3 flex-wrap">
         <SearchBar placeholder="Search name, phone, company…" />
+
         <div className="flex gap-2">
           <Link
             href="/contacts"
@@ -59,6 +76,7 @@ export default async function ContactsPage({
           >
             All
           </Link>
+
           {stages.map((s) => (
             <Link
               key={s}
@@ -90,26 +108,48 @@ export default async function ContactsPage({
                 <th className="px-5 py-3 font-semibold">Phone</th>
                 <th className="px-5 py-3 font-semibold">Company</th>
                 <th className="px-5 py-3 font-semibold">Stage</th>
-                <th className="px-5 py-3 font-semibold text-right">Action</th>
+                <th className="px-5 py-3 font-semibold text-right">
+                  Action
+                </th>
               </tr>
             </thead>
+
             <tbody>
-              {contacts.map((c) => (
-                <tr key={c.id} className="border-b border-base-700/60 last:border-0 hover:bg-base-800/40">
+              {contacts.map((c: any) => (
+                <tr
+                  key={c.id}
+                  className="border-b border-base-700/60 last:border-0 hover:bg-base-800/40"
+                >
                   <td className="px-5 py-3">
-                    <Link href={`/contacts/${c.id}`} className="text-white font-medium hover:text-accent-400">
+                    <Link
+                      href={`/contacts/${c.id}`}
+                      className="text-white font-medium hover:text-accent-400"
+                    >
                       {c.first_name || c.last_name
-                        ? `${c.first_name ?? ""} ${c.last_name ?? ""}`.trim()
+                        ? `${c.first_name ?? ""} ${
+                            c.last_name ?? ""
+                          }`.trim()
                         : "—"}
                     </Link>
                   </td>
-                  <td className="px-5 py-3 text-base-500">{c.phone}</td>
-                  <td className="px-5 py-3 text-base-500">{c.company ?? "—"}</td>
+
+                  <td className="px-5 py-3 text-base-500">
+                    {c.phone ?? "—"}
+                  </td>
+
+                  <td className="px-5 py-3 text-base-500">
+                    {c.company ?? "—"}
+                  </td>
+
                   <td className="px-5 py-3">
                     <Badge>{c.stage}</Badge>
                   </td>
+
                   <td className="px-5 py-3 text-right">
-                    <CallButton contactId={c.id} optedOut={c.opted_out} />
+                    <CallButton
+                      contactId={c.id}
+                      optedOut={c.opted_out}
+                    />
                   </td>
                 </tr>
               ))}
