@@ -82,7 +82,24 @@ create table if not exists availability_exceptions (
   note text
 );
 
+-- Date-range availability that overrides the weekly recurring rules for the
+-- dates it covers (e.g. "extra hours from 22 Jul to 30 Jul"). Does not
+-- replace availability_rules — getFreeSlots prefers a matching custom
+-- window for a given date and falls back to the weekly rules otherwise.
+create table if not exists custom_availability (
+  id uuid primary key default gen_random_uuid(),
+  start_date date not null,
+  end_date date not null,
+  start_time time not null,
+  end_time time not null,
+  slot_minutes integer default 30,
+  timezone text default 'Asia/Karachi',
+  active boolean default true,
+  created_at timestamptz default now()
+);
+
 create index if not exists idx_calls_contact on calls(contact_id);
 create index if not exists idx_appointments_contact on appointments(contact_id);
 create index if not exists idx_appointments_start on appointments(start_time);
 create index if not exists idx_contacts_phone on contacts(phone);
+create index if not exists idx_custom_availability_dates on custom_availability(start_date, end_date);

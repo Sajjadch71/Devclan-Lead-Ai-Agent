@@ -93,7 +93,11 @@ export default async function AppointmentsPage({
                       )}
                     </div>
                     <p className="text-sm text-base-400">
-                      {new Date(a.start_time).toLocaleString()} — {a.title}
+                     {new Date(a.start_time).toLocaleString("en-PK", {
+  timeZone: "Asia/Karachi",
+  dateStyle: "medium",
+  timeStyle: "short",
+})} — {a.title}
                     </p>
                     {a.company && <p className="text-xs text-base-500 mt-0.5">{a.company}</p>}
                     {a.notes && <p className="text-xs text-base-500 mt-1">{a.notes}</p>}

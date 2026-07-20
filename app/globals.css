@@ -11,12 +11,12 @@
 html,
 body {
   background-color: theme("colors.base.950");
-  color: #e8e8f0;
+  color: #111827;
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 ::selection {
-  background-color: rgba(124, 92, 244, 0.35);
+  background-color: rgba(124, 92, 244, 0.25);
 }
 
 ::-webkit-scrollbar {
@@ -27,18 +27,18 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: theme("colors.base.700");
+  background: theme("colors.base.600");
   border-radius: 8px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: theme("colors.base.600");
+  background: theme("colors.base.500");
 }
 
 .card {
   background-color: theme("colors.base.850");
   border: 1px solid theme("colors.base.700");
   border-radius: 16px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px -12px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 4px 16px -4px rgba(15, 23, 42, 0.08);
 }
 
 .btn-primary {
@@ -61,16 +61,16 @@ body {
 }
 
 .btn-ghost {
-  background: theme("colors.base.800");
+  background: theme("colors.base.900");
   border: 1px solid theme("colors.base.700");
-  color: #cfcfe0;
+  color: #111827;
   font-weight: 500;
   border-radius: 10px;
   padding: 0.55rem 1rem;
   transition: background 0.15s ease;
 }
 .btn-ghost:hover {
-  background: theme("colors.base.700");
+  background: theme("colors.base.800");
 }
 
 .input {
@@ -78,22 +78,23 @@ body {
   border: 1px solid theme("colors.base.700");
   border-radius: 10px;
   padding: 0.55rem 0.8rem;
-  color: #e8e8f0;
+  color: #111827;
   outline: none;
-  transition: border-color 0.15s ease;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
   width: 100%;
 }
 .input:focus {
   border-color: theme("colors.accent.500");
+  box-shadow: 0 0 0 3px rgba(124, 92, 244, 0.15);
 }
 .input::placeholder {
-  color: #6b6b85;
+  color: #94a3b8;
 }
 
 .label {
   font-size: 0.75rem;
   font-weight: 600;
-  color: #9494b0;
+  color: #64748b;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   margin-bottom: 0.35rem;

@@ -1,5 +1,37 @@
 import { NextRequest, NextResponse } from "next/server";
-import { query } from "@/lib/db";
+import { query, queryOne } from "@/lib/db";
+
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const body = await req.json();
+
+  const allowed = ["day_of_week", "start_time", "end_time", "slot_minutes", "timezone", "active"];
+  const sets: string[] = [];
+  const values: any[] = [];
+
+  for (const key of allowed) {
+    if (key in body) {
+      values.push(body[key]);
+      sets.push(`${key} = $${values.length}`);
+    }
+  }
+
+  if (sets.length === 0) {
+    return NextResponse.json({ error: "No valid fields to update" }, { status: 400 });
+  }
+
+  values.push(id);
+  const rule = await queryOne(
+    `update availability_rules set ${sets.join(", ")} where id = $${values.length} returning *`,
+    values
+  );
+
+  if (!rule) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  return NextResponse.json({ rule });
+}
 
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

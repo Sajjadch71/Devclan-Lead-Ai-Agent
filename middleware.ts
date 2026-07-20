@@ -3,7 +3,11 @@ import { jwtVerify } from "jose";
 
 const COOKIE_NAME = "devclan_session";
 const PUBLIC_PATHS = ["/login", "/api/auth/login"];
-const PUBLIC_API_PREFIXES = ["/api/webhooks", "/api/functions"];
+const PUBLIC_API_PREFIXES = [
+  "/api/webhooks",
+  "/api/functions",
+  "/api/appointments",
+];
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;

@@ -51,6 +51,7 @@ export async function POST(req: NextRequest) {
   }
 
   // ── A time was chosen: validate and book it for real ─────────────
+  console.log("AI SELECTED TIME:", selectedTime);
   const startTime = new Date(selectedTime);
   if (isNaN(startTime.getTime())) {
     return NextResponse.json({

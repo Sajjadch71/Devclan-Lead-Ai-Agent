@@ -21,11 +21,24 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const rule = await queryOne(
-    `insert into availability_rules (day_of_week, start_time, end_time, slot_minutes, timezone)
-     values ($1,$2,$3,$4,$5) returning *`,
-    [day_of_week, start_time, end_time, slot_minutes ?? 30, timezone ?? "Asia/Karachi"]
+  const existing = await queryOne<{ id: string }>(
+    `select id from availability_rules where day_of_week = $1 and active = true limit 1`,
+    [day_of_week]
   );
+
+  const rule = existing
+    ? await queryOne(
+        `update availability_rules
+         set start_time = $1, end_time = $2, slot_minutes = $3, timezone = $4, active = true
+         where id = $5
+         returning *`,
+        [start_time, end_time, slot_minutes ?? 30, timezone ?? "Asia/Karachi", existing.id]
+      )
+    : await queryOne(
+        `insert into availability_rules (day_of_week, start_time, end_time, slot_minutes, timezone)
+         values ($1,$2,$3,$4,$5) returning *`,
+        [day_of_week, start_time, end_time, slot_minutes ?? 30, timezone ?? "Asia/Karachi"]
+      );
 
   return NextResponse.json({ rule });
 }
