@@ -104,6 +104,30 @@ create table if not exists custom_availability (
   created_at timestamptz default now()
 );
 
+-- Apollo (or other source) lead pipeline — pre-qualification, separate from
+-- contacts. A lead is promoted into contacts (source='apollo') by a future
+-- phase once qualified; leads are not callable directly yet.
+create table if not exists leads (
+  id uuid primary key default gen_random_uuid(),
+  first_name text,
+  last_name text,
+  company text,
+  email text,
+  phone text,
+  job_title text,
+  source text default 'apollo',
+  status text default 'new',               -- 'new' | 'contacted' | 'interested' | 'qualified' | 'converted' | 'lost'
+  notes text,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+-- Partial unique indexes double as the dedupe mechanism ingestion relies on:
+-- prefer matching by email, fall back to phone only when email is absent.
+create unique index if not exists idx_leads_email on leads(email) where email is not null;
+create unique index if not exists idx_leads_phone on leads(phone) where phone is not null;
+create index if not exists idx_leads_status on leads(status);
+
 create index if not exists idx_calls_contact on calls(contact_id);
 create index if not exists idx_appointments_contact on appointments(contact_id);
 create index if not exists idx_appointments_start on appointments(start_time);

@@ -9,6 +9,7 @@ export type RawApolloLead = {
   phone?: string | null;
   email?: string | null;
   company?: string | null;
+  job_title?: string | null;
 };
 
 /**

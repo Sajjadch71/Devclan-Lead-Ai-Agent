@@ -15,6 +15,10 @@ const STYLES: Record<string, string> = {
   "Not Interested": "bg-coral-500/15 text-coral-400 border border-coral-500/20",
   Callback: "bg-amber-500/15 text-amber-400 border border-amber-500/20",
   Voicemail: "bg-base-700 text-base-500",
+  contacted: "bg-amber-500/15 text-amber-400 border border-amber-500/20",
+  interested: "bg-amber-500/15 text-amber-400 border border-amber-500/20",
+  qualified: "bg-mint-500/15 text-mint-400 border border-mint-500/20",
+  converted: "bg-mint-500/15 text-mint-400 border border-mint-500/20",
 };
 
 const TONES: Record<string, string> = {

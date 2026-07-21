@@ -5,13 +5,14 @@ export default function StatCard({
 }: {
   label: string;
   value: string | number;
-  accent?: "accent" | "mint" | "amber" | "coral";
+  accent?: "accent" | "mint" | "amber" | "coral" | "base";
 }) {
   const dot: Record<string, string> = {
     accent: "bg-accent-400",
     mint: "bg-mint-400",
     amber: "bg-amber-400",
     coral: "bg-coral-400",
+    base: "bg-base-500",
   };
 
   return (
