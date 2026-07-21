@@ -1,58 +1,71 @@
 import { Pool } from "pg";
 
-declare global {
-  // eslint-disable-next-line no-var
-  var __pgPool: Pool | undefined;
-}
+const globalForPg = global as unknown as {
+  pool: Pool | undefined;
+};
 
-function createPool() {
-  const connectionString = process.env.DATABASE_URL;
-
-  if (!connectionString) {
-    throw new Error(
-      "DATABASE_URL is not set. Add it in your Vercel project's Environment Variables (or .env.local for local dev)."
-    );
-  }
-
- return new Pool({
-  connectionString,
-  ssl: {
-    rejectUnauthorized: false,
-  },
-  max: 2,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 10000,
-});
-}
-
-// Reuse the pool across hot-reloads in dev / across invocations on Vercel.
-const pool = global.__pgPool ?? createPool();
+export const pool =
+  globalForPg.pool ??
+  new Pool({
+    connectionString: process.env.DATABASE_URL,
+    max: 10,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 15000,
+    keepAlive: true,
+    ssl: {
+      rejectUnauthorized: false,
+    },
+  });
 
 if (process.env.NODE_ENV !== "production") {
-  global.__pgPool = pool;
+  globalForPg.pool = pool;
+}
+
+pool.on("error", (err) => {
+  console.error("POSTGRES POOL ERROR:", err.message);
+});
+
+async function runQuery<T = any>(
+  text: string,
+  params?: any[]
+): Promise<T[]> {
+  const result = await pool.query(text, params);
+  return result.rows as T[];
 }
 
 export async function query<T = any>(
   text: string,
-  params: any[] = []
+  params?: any[]
 ): Promise<T[]> {
   try {
-    const result = await pool.query(text, params);
-    return result.rows as T[];
-  } catch (error) {
-    console.error("DATABASE ERROR:", error);
-    console.error("FAILED QUERY:", text);
-    console.error("PARAMS:", params);
+    return await runQuery<T>(text, params);
+  } catch (error: any) {
+    console.error("DATABASE QUERY ERROR:", error.message);
+
+    const retry =
+      error.code === "ECONNRESET" ||
+      error.code === "ETIMEDOUT" ||
+      error.message?.includes("timeout") ||
+      error.message?.includes("terminated");
+
+    if (retry) {
+      console.log("Retrying database query...");
+
+      await new Promise((resolve) =>
+        setTimeout(resolve, 1000)
+      );
+
+      return await runQuery<T>(text, params);
+    }
+
     throw error;
   }
 }
 
 export async function queryOne<T = any>(
   text: string,
-  params: any[] = []
+  params?: any[]
 ): Promise<T | null> {
   const rows = await query<T>(text, params);
   return rows[0] ?? null;
 }
-
-export default pool;
