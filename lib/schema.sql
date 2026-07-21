@@ -27,6 +27,7 @@ create table if not exists calls (
   id uuid primary key default gen_random_uuid(),
   contact_id uuid references contacts(id) on delete set null,
   retell_call_id text unique,
+  agent_id text,
   direction text default 'outbound',
   from_number text,
   to_number text,
@@ -46,8 +47,13 @@ create table if not exists calls (
   raw_payload jsonb,
   started_at timestamptz,
   ended_at timestamptz,
-  created_at timestamptz default now()
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
 );
+
+-- Added for Phase 2 (multi-event webhook handling) — safe to re-run.
+alter table calls add column if not exists agent_id text;
+alter table calls add column if not exists updated_at timestamptz default now();
 
 create table if not exists appointments (
   id uuid primary key default gen_random_uuid(),

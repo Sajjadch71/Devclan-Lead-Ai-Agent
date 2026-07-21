@@ -1,8 +1,17 @@
-import { query } from "@/lib/db";
+import { query, queryOne } from "@/lib/db";
 import Link from "next/link";
 import Badge from "@/components/Badge";
 import EmptyState from "@/components/EmptyState";
 import SearchBar from "@/components/SearchBar";
+import StatCard from "@/components/StatCard";
+
+function fmtAvgDuration(seconds: string | number | null) {
+  const n = Number(seconds);
+  if (!n) return "—";
+  const m = Math.floor(n / 60);
+  const s = Math.round(n % 60);
+  return `${m}m ${s}s`;
+}
 
 export const dynamic = "force-dynamic";
 
@@ -39,11 +48,32 @@ export default async function CallsPage({
 
   const outcomes = ["Booked", "Not Interested", "Callback", "Voicemail"];
 
+  const totals = await queryOne<{
+    total_calls: string;
+    completed_calls: string;
+    failed_calls: string;
+    avg_duration_seconds: string | null;
+  }>(`
+    select
+      count(*) as total_calls,
+      count(*) filter (where status = 'ended') as completed_calls,
+      count(*) filter (where status = 'error') as failed_calls,
+      avg(duration_seconds) filter (where duration_seconds is not null) as avg_duration_seconds
+    from calls
+  `);
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-white">Calls</h1>
         <p className="text-base-500 text-sm mt-1">{calls.length} shown</p>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <StatCard label="Total calls" value={totals?.total_calls ?? 0} accent="accent" />
+        <StatCard label="Completed" value={totals?.completed_calls ?? 0} accent="mint" />
+        <StatCard label="Failed" value={totals?.failed_calls ?? 0} accent="coral" />
+        <StatCard label="Avg duration" value={fmtAvgDuration(totals?.avg_duration_seconds ?? null)} accent="amber" />
       </div>
 
       <div className="flex items-center gap-3 flex-wrap">

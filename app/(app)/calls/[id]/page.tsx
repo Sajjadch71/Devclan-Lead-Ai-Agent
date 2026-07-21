@@ -125,6 +125,12 @@ export default async function CallDetailPage({
               <span className="text-base-500">Retell call ID</span>
               <span className="text-white text-xs break-all text-right">{call.retell_call_id}</span>
             </div>
+            {call.agent_id && (
+              <div className="flex justify-between">
+                <span className="text-base-500">Agent ID</span>
+                <span className="text-white text-xs break-all text-right">{call.agent_id}</span>
+              </div>
+            )}
           </div>
         </div>
       </div>
